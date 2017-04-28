@@ -10,7 +10,7 @@ import scala.language.dynamics
 
 
 
-class ZombieDSL extends App {
+object ZombieDSL extends App {
   
    var entities = new mutable.HashMap[String, EntityType]
    var tasks = new mutable.HashMap[String, MutableList[MutableList[taskStatement]]]
@@ -62,14 +62,22 @@ class ZombieDSL extends App {
    }
    
    def animate {
-     if(!currentTask) {
+     if(!currentTask && !currentSummon) {
        throw new RuntimeException("");
      }
-     currentEntity match {
-       case Zombie => 
-       case _ => throw new RuntimeException("");
+     
+     if(currentTask) {
+       currentTask = false
+       tasks(currentTaskName) = taskElement
+     } else {
+       //finish summon
+       currentEntity match {
+         case Zombie => 
+         case _ => throw new RuntimeException("");
+       }
        
      }
+     
    
      
    }
@@ -109,6 +117,7 @@ class ZombieDSL extends App {
        taskStatementStack = new MutableList[taskStatement]
        currentTaskStatement = new rememberTask(entityName, statementStack)
        taskStatementStack.+=(currentTaskStatement)
+       taskElement.+=(taskStatementStack)
        TaskGetter 
      }
      
@@ -118,6 +127,7 @@ class ZombieDSL extends App {
        taskStatementStack = new MutableList[taskStatement]
        currentTaskStatement = new rememberTask(currentEntity.name, statementStack)
        taskStatementStack.+=(currentTaskStatement)
+       taskElement.+=(taskStatementStack)
        TaskGetter
      }
       
@@ -129,6 +139,7 @@ class ZombieDSL extends App {
        taskStatementStack = new MutableList[taskStatement]
        currentTaskStatement = new rememberTask(currentEntity.name, statementStack)
        taskStatementStack.+=(currentTaskStatement)
+       taskElement.+=(taskStatementStack)
        TaskGetter
      }
      
@@ -166,6 +177,7 @@ class ZombieDSL extends App {
        //statementStack.+=(num)
        currentTaskStatement = new moanTask(currentEntity.name, num, statementStack)
        taskStatementStack.+=(currentTaskStatement)
+       taskElement.+=(taskStatementStack)
        TaskGetter
      }
      
@@ -176,6 +188,7 @@ class ZombieDSL extends App {
        //statementStack.+=(entities(entityName).memInt)
        currentTaskStatement = new moanTask(entityName, entities(entityName).memInt, statementStack)
        taskStatementStack.+=(currentTaskStatement)
+       taskElement.+=(taskStatementStack)
        TaskGetter
      }
      
@@ -197,21 +210,8 @@ class ZombieDSL extends App {
    object TaskGetter {
      
        def apply = {
-         /*
-         //finish statement stack
-         currentTaskObject match {
-           case remember =>
-           case moan =>
-           case say =>
-           case _ =>
-
-         }
-         */
-           //sum ints in the statement stack
-           //val res = 0
-           //val x = statementStack.foreach(res += match
-
-
+         //end statement
+         taskElement.+=(taskStatementStack)
        }
      
        def moan(entityName : String) = {
@@ -224,41 +224,41 @@ class ZombieDSL extends App {
          TaskGetter
        }
      
-       /*
-        * can this be supported??
-       def remember(entityName : String) = {
-       
-         TaskGetter
-       }
-     		*/
+      
      
        def say(something : String) = {
-       
+         print(something)
          TaskGetter
        }
      }
    
    object say {
      def apply(something : String) = {
-       
+       if(entities.contains(something)) {
+         print(entities(something).memInt)
+       } else {
+         print(something)
+       }
+       TaskGetter
      }
    }
-   
-   class sayStatement(s : String) extends taskStatement {
-     
-   }
+
  
 
   
 
   "tom" is Zombie
+
   summon
   task ("SayHello")
   moan
   moan start "tom" moan 5 moan "tom"
-  say ("sorry")
+  remember (12)
+  say ("sorry\n")
+  say ("tom")
   remember start "tom" moan 5
-  say ("Hello World")
+  say ("Hello World\n")
+  say ("tom")
   animate
   animate
 

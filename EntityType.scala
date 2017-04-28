@@ -1,13 +1,12 @@
 
-
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
 
   abstract class EntityType {
-   var name : String
+   var name : String = ""
    var task = new MutableList[Unit]
-   var memInt : Integer
-   var memString : String
+   var memInt : Integer = 0
+   var memString : String = ""
  
  }
  
@@ -18,4 +17,4 @@ import scala.collection.mutable.MutableList
  case object Ghost extends EntityType
  case object Vampire extends EntityType
  case object Demon extends EntityType
-case object Djinn extends EntityType
+ case object Djinn extends EntityType
