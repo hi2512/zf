@@ -14,21 +14,23 @@ object ZombieDSL extends App {
   
    var entities = new mutable.HashMap[String, EntityType]
    var tasks = new mutable.HashMap[String, MutableList[MutableList[taskStatement]]]
+   var rememberEntity = ""
    var callStack = new mutable.MutableList[EntityType]
    var currentSummon = false
    var currentTask = false
    var currentLoop = false
-   var currentTaskStatement : taskStatement = new rememberTask("", new MutableList[Object])
+   var currentTaskStatement : taskStatement = new rememberTask("", new MutableList[Int])
    var currentTaskName : String = ""
    var currentTaskObject : Object = remember
    
    var taskElement = new MutableList[MutableList[taskStatement]]
    //for remember
-   var statementStack : MutableList[Object] = new MutableList[Object]
+   var statementStack : MutableList[Int] = new MutableList[Int]
    
    var taskStatementStack : MutableList[taskStatement] = new MutableList[taskStatement]
    var currentEntity : EntityType = Zombie
   
+   
   
   implicit class EntityName(s : String) {
     
@@ -62,11 +64,18 @@ object ZombieDSL extends App {
    }
    
    def animate {
+     
      if(!currentTask && !currentSummon) {
        throw new RuntimeException("");
      }
      
      if(currentTask) {
+      if(currentTaskObject.equals(remember) && rememberEntity != "")
+       {
+                  entities(rememberEntity).memInt = statementStack.sum
+
+       }
+       rememberEntity = ""
        currentTask = false
        tasks(currentTaskName) = taskElement
      } else {
@@ -81,11 +90,15 @@ object ZombieDSL extends App {
    
      
    }
-   
+   class loop(tasks : MutableList[taskStatement])
+   {
+     
+   }
    def shamble {
      
-     def apply(entityName : String) {
-       
+     def apply(entityName : String) 
+     {
+         
      }
      
    }
@@ -110,60 +123,67 @@ object ZombieDSL extends App {
    object remember {
      
      def start(entityName : String) = {
+              if(currentTaskObject.equals(remember) && rememberEntity != "")  {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
        //currentRemember = true
        currentTaskObject = this
+       rememberEntity = entityName
        //is remember the only thing that uses the task stack??
-       statementStack = new MutableList[Object]
+       statementStack = new MutableList[Int]
        taskStatementStack = new MutableList[taskStatement]
-       currentTaskStatement = new rememberTask(entityName, statementStack)
        taskStatementStack.+=(currentTaskStatement)
        taskElement.+=(taskStatementStack)
-       TaskGetter 
+       new TaskGetter (statementStack)
+       //entities(entityName).memInt = statementStack.sum
      }
      
      def start = {
-       currentTaskObject = this
-       statementStack = new MutableList[Object]
+              if(currentTaskObject.equals(remember) && rememberEntity != "")  {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
+       rememberEntity = currentEntity.name
+       currentTaskObject = this       
+       statementStack = new MutableList[Int]
        taskStatementStack = new MutableList[taskStatement]
-       currentTaskStatement = new rememberTask(currentEntity.name, statementStack)
        taskStatementStack.+=(currentTaskStatement)
        taskElement.+=(taskStatementStack)
-       TaskGetter
+       new TaskGetter(statementStack)
+       
+
      }
       
      def apply(num : Integer) = {
+              if(currentTaskObject.equals(remember) && rememberEntity != "")  {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
+       rememberEntity = currentEntity.name
        currentTaskObject = this
        //currentEntity.memInt = num
-       statementStack = new MutableList[Object]
+       statementStack = new MutableList[Int]
        statementStack.+=(num)
        taskStatementStack = new MutableList[taskStatement]
-       currentTaskStatement = new rememberTask(currentEntity.name, statementStack)
        taskStatementStack.+=(currentTaskStatement)
        taskElement.+=(taskStatementStack)
-       TaskGetter
+       new TaskGetter(statementStack)
+       //entities(currentEntity.name).memInt = statementStack.sum
+
+       //new rememberTask(currentEntity.name, statementStack)
+       
      }
      
    }
    
    trait taskStatement
    
-   class rememberTask (entityName : String, stack : MutableList[Object]) extends taskStatement {
+   class rememberTask (entityName : String, stack : MutableList[Int]) extends taskStatement {
      
-     def this(num : Integer, stack : MutableList[Object]) {
+     def this(num : Integer, stack : MutableList[Int]) {
         this(currentEntity.name, stack) 
      }
      
      def apply {
-       var sum = 0
-       var intStack = new MutableList[Integer]
-       for(obj <- stack if obj.isInstanceOf[Integer]) {
-         intStack.+=(obj.asInstanceOf[Integer])
-       }
-      
-       for(i <- intStack) {
-         sum += i
-       }
-       entities(entityName).memInt = sum
+       entities(entityName).memInt = stack.sum
      }
      
    }
@@ -172,31 +192,37 @@ object ZombieDSL extends App {
      
      
      def apply(num : Integer) = {
+              if(currentTaskObject.equals(remember) && rememberEntity != "")  {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
        currentTaskObject = this
-       statementStack = new MutableList[Object]
+       statementStack = new MutableList[Int]
        //statementStack.+=(num)
        currentTaskStatement = new moanTask(currentEntity.name, num, statementStack)
        taskStatementStack.+=(currentTaskStatement)
        taskElement.+=(taskStatementStack)
-       TaskGetter
+       new TaskGetter(statementStack)
      }
      
      
      def start (entityName : String) = {
+       if(currentTaskObject.equals(remember) && rememberEntity != "") {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
        currentTaskObject = this
-       statementStack = new MutableList[Object]
+       statementStack = new MutableList[Int]
        //statementStack.+=(entities(entityName).memInt)
        currentTaskStatement = new moanTask(entityName, entities(entityName).memInt, statementStack)
        taskStatementStack.+=(currentTaskStatement)
        taskElement.+=(taskStatementStack)
-       TaskGetter
+       new TaskGetter(statementStack)
      }
      
    }
    
-   class moanTask(moaner : String, moanVal : Integer, stack : MutableList[Object]) extends taskStatement {
+   class moanTask(moaner : String, moanVal : Integer, stack : MutableList[Int]) extends taskStatement {
      
-     def this(moaner: String, stack : MutableList[Object]) {
+     def this(moaner: String, stack : MutableList[Int]) {
        this(moaner, 0, stack)
      }
      
@@ -207,39 +233,46 @@ object ZombieDSL extends App {
      
    }
    
-   object TaskGetter {
+   class TaskGetter(s : MutableList[Int]) {
      
        def apply = {
-         //end statement
+         print("100000")
          taskElement.+=(taskStatementStack)
        }
      
-       def moan(entityName : String) = {
-         statementStack.+=(entities(entityName).memInt)
-         TaskGetter
+       def moan(entityName : String) = {         
+         s.+=(entities(entityName).memInt)
+         new TaskGetter(s)
        }
        
        def moan(num : Integer) = {
-         statementStack.+=(num)
-         TaskGetter
+         s.+=(num)
+         new TaskGetter(s)
        }
      
+       def remember(entityName: String) = {
+         entities(entityName).memInt = s.sum
+       }
       
      
        def say(something : String) = {
          print(something)
-         TaskGetter
+         new TaskGetter(s)
        }
      }
    
    object say {
      def apply(something : String) = {
+              if(currentTaskObject.equals(remember) && rememberEntity != "")  {
+         entities(rememberEntity).memInt = statementStack.sum
+       }
+       currentTaskObject = this
        if(entities.contains(something)) {
          print(entities(something).memInt)
        } else {
          print(something)
        }
-       TaskGetter
+       new TaskGetter(new MutableList[Int])
      }
    }
 
@@ -256,7 +289,9 @@ object ZombieDSL extends App {
   remember (12)
   say ("sorry\n")
   say ("tom")
+  say ("\n")
   remember start "tom" moan 5
+  remember start "tom" moan 5 moan "tom" moan 10
   say ("Hello World\n")
   say ("tom")
   animate
