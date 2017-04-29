@@ -6,7 +6,7 @@ import scala.collection.mutable.MutableList
    var name : String = ""
    var task = new MutableList[Unit]
    var memInt : Integer = 0
-   var memString : String = ""
+   var prog : MutableList[TaskElement] = new MutableList[TaskElement]
  
  }
  
