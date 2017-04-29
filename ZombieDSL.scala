@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Stack
 import scala.collection.mutable.MutableList
+import scala.collection.mutable.ListBuffer
 
 import scala.language.implicitConversions
 import scala.language.dynamics
@@ -11,41 +12,71 @@ import scala.language.dynamics
 object ZombieDSL extends App {
 
   var entities = new mutable.HashMap[String, EntityType]
-  var callStack = new mutable.MutableList[EntityType]
+  var callStack = new mutable.ListBuffer[EntityType]
 
   var currentSummon = false
   var currentTask = false
   var currentLoop = false
 
-  var currentProg = new MutableList[TaskElement]
+  var currentProg = new ListBuffer[TaskElement]
 
   var currentTaskName: String = ""
   var currentTaskObject: Object = noTask
 
-  var currentTaskElement = new TaskElement(new MutableList[TaskType], new MutableList[Object])
+  var currentTaskElement = new TaskElement(new ListBuffer[TaskType], new ListBuffer[Object])
   //for remember
-  var taskStack: MutableList[TaskType] = new MutableList[TaskType]
-  var statementStack: MutableList[Object] = new MutableList[Object]
+  var taskStack: ListBuffer[TaskType] = new ListBuffer[TaskType]
+  var statementStack: ListBuffer[Object] = new ListBuffer[Object]
 
   var currentEntity: EntityType = Zombie
 
   //for loop
   var shambleCount: Int = 0
 
-  //var taskStatementStack: MutableList[taskStatement] = new MutableList[taskStatement]
+  //var taskStatementStack: ListBuffer[taskStatement] = new ListBuffer[taskStatement]
   //var currentTaskStatement: taskStatement = new rememberTask("", new MutableList[Int])
   // var tasks = new mutable.HashMap[String, MutableList[MutableList[taskStatement]]]
   //var rememberEntity = ""
-  
-  class EntityThread(entity : EntityType) extends Runnable {
-    
+
+  class EntityThread(entity: EntityType) extends Runnable {
+
     def run {
-      for(t <- entity.prog) {
+      for (t <- entity.prog) {
+        var tasksOrdered = t.tasks.reverse
+        var stackOrdered = t.stack.reverse
+        var it = stackOrdered.iterator
+        for (t <- tasksOrdered) {
+          t match {
+            case REMEMBER => rememberTask(it.next.asInstanceOf[EntityType], stackOrdered)
+            case MOAN =>
+            case SAY =>
+            case ANIMATE =>
+            case DISTURB =>
+            case BANISH =>
+            case REND =>    
+            case SHAMBLE =>
+            case AROUND =>
+            case UNTIL =>
+          }
           
+        }
       }
-      
+
     }
-    
+
+  }
+
+  def rememberTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+      for (a <- statementStack) {
+        if (a.isInstanceOf[EntityType]) {
+          sum += a.asInstanceOf[EntityType].memInt
+        } else if(a.isInstanceOf[Int]) {
+          sum += a.asInstanceOf[Int]
+        }
+      }
+
   }
 
   implicit class EntityName(s: String) {
@@ -66,7 +97,7 @@ object ZombieDSL extends App {
       throw new RuntimeException("");
     }
     currentTask = true
-    currentProg = new MutableList[TaskElement]
+    currentProg = new ListBuffer[TaskElement]
   }
 
   object task {
@@ -121,9 +152,9 @@ object ZombieDSL extends App {
       }
       shambleCount += 1
       //put empty stack to keep even
-      statementStack = new MutableList[Object]
+      statementStack = new ListBuffer[Object]
 
-      taskStack = new MutableList[TaskType]
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(SHAMBLE)
       currentTaskElement = new TaskElement(taskStack, statementStack)
     }
@@ -140,16 +171,16 @@ object ZombieDSL extends App {
         currentEntity.prog.+=(currentTaskElement)
       }
       shambleCount -= 1
-      statementStack = new MutableList[Object]
+      statementStack = new ListBuffer[Object]
 
-      taskStack = new MutableList[TaskType]
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(UNTIL)
       new IsGetter(statementStack)
     }
 
   }
 
-  class IsGetter(stack: MutableList[Object]) {
+  class IsGetter(stack: ListBuffer[Object]) {
     def is(num: Integer) = {
       stack.+=(num)
     }
@@ -167,9 +198,9 @@ object ZombieDSL extends App {
       currentEntity.prog.+=(currentTaskElement)
     }
     shambleCount -= 1
-    statementStack = new MutableList[Object]
+    statementStack = new ListBuffer[Object]
 
-    taskStack = new MutableList[TaskType]
+    taskStack = new ListBuffer[TaskType]
     taskStack.+=(AROUND)
   }
 
@@ -197,9 +228,9 @@ object ZombieDSL extends App {
 
       currentTaskObject = this
       //is remember the only thing that uses the task stack??
-      statementStack = new MutableList[Object]
-      statementStack.+=(entityName)
-      taskStack = new MutableList[TaskType]
+      statementStack = new ListBuffer[Object]
+      statementStack.+=(entities(entityName))
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(REMEMBER)
       currentTaskElement = new TaskElement(taskStack, statementStack)
       new TaskGetter(taskStack, statementStack)
@@ -213,9 +244,9 @@ object ZombieDSL extends App {
 
       currentTaskObject = this
 
-      statementStack = new MutableList[Object]
-      statementStack.+=(currentEntity.name)
-      taskStack = new MutableList[TaskType]
+      statementStack = new ListBuffer[Object]
+      statementStack.+=(currentEntity)
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(REMEMBER)
       currentTaskElement = new TaskElement(taskStack, statementStack)
       new TaskGetter(taskStack, statementStack)
@@ -229,10 +260,12 @@ object ZombieDSL extends App {
 
       currentTaskObject = this
 
-      statementStack = new MutableList[Object]
-      statementStack.+=(num)
-      taskStack = new MutableList[TaskType]
+      statementStack = new ListBuffer[Object]
+      statementStack.+=(currentEntity)
+      statementStack.+=:(num)
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(REMEMBER)
+      taskStack.+=:(MOAN)
       currentTaskElement = new TaskElement(taskStack, statementStack)
       new TaskGetter(taskStack, statementStack)
       //entities(currentEntity.name).memInt = statementStack.sum
@@ -243,33 +276,6 @@ object ZombieDSL extends App {
 
   }
 
-  /*
-  class rememberTask(entityName: String, stack: MutableList[Object]) extends taskStatement {
-
-    def this(num: Integer, stack: MutableList[Object]) {
-      this(currentEntity.name, stack)
-    }
-
-    def apply {
-      if (currentTaskObject.equals(remember) && rememberEntity != "") {
-        var sum = 0
-        for (a <- statementStack) {
-          if (a.isInstanceOf[EntityType]) {
-            sum += a.asInstanceOf[EntityType].memInt
-          } else {
-            sum += a.asInstanceOf[Int]
-          }
-        }
-      }
-      
-      
-      
-      
-    }
-
-  }
-*/
-
   object moan {
 
     def apply(num: Integer) = {
@@ -278,7 +284,7 @@ object ZombieDSL extends App {
       }
 
       currentTaskObject = this
-      statementStack = new MutableList[Object]
+      statementStack = new ListBuffer[Object]
       //statementStack.+=(num)
 
       new TaskGetter(taskStack, statementStack)
@@ -290,7 +296,7 @@ object ZombieDSL extends App {
       }
 
       currentTaskObject = this
-      statementStack = new MutableList[Object]
+      statementStack = new ListBuffer[Object]
       //statementStack.+=(entities(entityName).memInt)
 
       new TaskGetter(taskStack, statementStack)
@@ -298,9 +304,9 @@ object ZombieDSL extends App {
 
   }
 
-  class moanTask(moaner: String, moanVal: Integer, stack: MutableList[Object]) extends taskStatement {
+  class moanTask(moaner: String, moanVal: Integer, stack: ListBuffer[Object]) extends taskStatement {
 
-    def this(moaner: String, stack: MutableList[Object]) {
+    def this(moaner: String, stack: ListBuffer[Object]) {
       this(moaner, 0, stack)
     }
 
@@ -310,7 +316,7 @@ object ZombieDSL extends App {
 
   }
 
-  class TaskGetter(ts: MutableList[TaskType], s: MutableList[Object]) {
+  class TaskGetter(ts: ListBuffer[TaskType], s: ListBuffer[Object]) {
 
     def apply = {
 
@@ -349,9 +355,9 @@ object ZombieDSL extends App {
 
       currentTaskObject = this
 
-      statementStack = new MutableList[Object]
+      statementStack = new ListBuffer[Object]
       statementStack.+=(currentEntity.name)
-      taskStack = new MutableList[TaskType]
+      taskStack = new ListBuffer[TaskType]
       taskStack.+=(SAY)
       currentTaskElement = new TaskElement(taskStack, statementStack)
       new TaskGetter(taskStack, statementStack)

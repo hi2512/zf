@@ -1,12 +1,12 @@
 
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
+import scala.collection.mutable.ListBuffer
 
   abstract class EntityType {
    var name : String = ""
-   var task = new MutableList[Unit]
    var memInt : Integer = 0
-   var prog : MutableList[TaskElement] = new MutableList[TaskElement]
+   var prog : ListBuffer[TaskElement] = new ListBuffer[TaskElement]
  
  }
  

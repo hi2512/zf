@@ -1,12 +1,15 @@
 
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
+import scala.collection.mutable.ListBuffer
 
-class TaskElement(tasks : MutableList[TaskType], stack : MutableList[Object]) 
+class TaskElement(tasksList: ListBuffer[TaskType], stackList: ListBuffer[Object]) {
 
+  var tasks = tasksList
+  var stack = stackList
+}
 
 abstract class TaskType
-
 
 case object REMEMBER extends TaskType
 case object SAY extends TaskType
