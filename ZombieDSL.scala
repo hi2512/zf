@@ -25,7 +25,7 @@ object ZombieDSL extends App {
    
    var taskElement = new MutableList[MutableList[taskStatement]]
    //for remember
-   var statementStack : MutableList[Int] = new MutableList[Int]
+   var statementStack : MutableList[Object] = new MutableList[Object]
    
    var taskStatementStack : MutableList[taskStatement] = new MutableList[taskStatement]
    var currentEntity : EntityType = Zombie
@@ -72,7 +72,14 @@ object ZombieDSL extends App {
      if(currentTask) {
       if(currentTaskObject.equals(remember) && rememberEntity != "")
        {
-                  entities(rememberEntity).memInt = statementStack.sum
+        var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
 
        }
        rememberEntity = ""
@@ -124,7 +131,14 @@ object ZombieDSL extends App {
      
      def start(entityName : String) = {
               if(currentTaskObject.equals(remember) && rememberEntity != "")  {
-         entities(rememberEntity).memInt = statementStack.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
        //currentRemember = true
        currentTaskObject = this
@@ -155,7 +169,14 @@ object ZombieDSL extends App {
       
      def apply(num : Integer) = {
               if(currentTaskObject.equals(remember) && rememberEntity != "")  {
-         entities(rememberEntity).memInt = statementStack.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
        rememberEntity = currentEntity.name
        currentTaskObject = this
@@ -193,10 +214,17 @@ object ZombieDSL extends App {
      
      def apply(num : Integer) = {
               if(currentTaskObject.equals(remember) && rememberEntity != "")  {
-         entities(rememberEntity).memInt = statementStack.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
        currentTaskObject = this
-       statementStack = new MutableList[Int]
+       statementStack = new MutableList[Object]
        //statementStack.+=(num)
        currentTaskStatement = new moanTask(currentEntity.name, num, statementStack)
        taskStatementStack.+=(currentTaskStatement)
@@ -207,7 +235,14 @@ object ZombieDSL extends App {
      
      def start (entityName : String) = {
        if(currentTaskObject.equals(remember) && rememberEntity != "") {
-         entities(rememberEntity).memInt = statementStack.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
        currentTaskObject = this
        statementStack = new MutableList[Int]
@@ -233,15 +268,14 @@ object ZombieDSL extends App {
      
    }
    
-   class TaskGetter(s : MutableList[Int]) {
+   class TaskGetter(s : MutableList[Object]) {
      
        def apply = {
-         print("100000")
          taskElement.+=(taskStatementStack)
        }
      
        def moan(entityName : String) = {         
-         s.+=(entities(entityName).memInt)
+         s.+=(entities(entityName))
          new TaskGetter(s)
        }
        
@@ -251,7 +285,14 @@ object ZombieDSL extends App {
        }
      
        def remember(entityName: String) = {
-         entities(entityName).memInt = s.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
       
      
@@ -264,7 +305,14 @@ object ZombieDSL extends App {
    object say {
      def apply(something : String) = {
               if(currentTaskObject.equals(remember) && rememberEntity != "")  {
-         entities(rememberEntity).memInt = statementStack.sum
+         var sum = 0
+          for( a <- statementStack) {
+            if(a.isInstanceOf[EntityType]) {
+              sum += a.asInstanceOf[EntityType].memInt
+            } else {
+              sum += a.asInstanceOf[Int]
+            }
+          }
        }
        currentTaskObject = this
        if(entities.contains(something)) {
@@ -299,6 +347,3 @@ object ZombieDSL extends App {
 
   
 }
-
- 
-
