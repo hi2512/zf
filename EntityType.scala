@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
   abstract class EntityType {
    var name : String = ""
    var memInt : Integer = 0
-   var prog : ListBuffer[TaskElement] = new ListBuffer[TaskElement]
+   var prog : ListBuffer[TaskElement] = new ListBuffer[TaskElement]()
  
  }
  

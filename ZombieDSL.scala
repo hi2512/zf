@@ -13,7 +13,7 @@ object ZombieDSL extends App {
 
   var entities = new mutable.HashMap[String, EntityType]
   var callStack = new mutable.ListBuffer[EntityType]
-
+  var shambleStack = new Stack[Int]
   var currentSummon = false
   var currentTask = false
   var currentLoop = false
@@ -41,41 +41,181 @@ object ZombieDSL extends App {
   class EntityThread(entity: EntityType) extends Runnable {
 
     def run {
-      for (t <- entity.prog) {
+      var j = 0
+
+      while (j < entity.prog.size) {
+        var t = entity.prog(j)
         var tasksOrdered = t.tasks.reverse
         var stackOrdered = t.stack.reverse
-        var it = stackOrdered.iterator
-        for (t <- tasksOrdered) {
-          t match {
-            case REMEMBER => rememberTask(it.next.asInstanceOf[EntityType], stackOrdered)
-            case MOAN =>
-            case SAY =>
-            case ANIMATE =>
-            case DISTURB =>
-            case BANISH =>
-            case REND =>    
-            case SHAMBLE =>
-            case AROUND =>
-            case UNTIL =>
+        var i = 0
+        var stackCopy = stackOrdered.clone()
+        while (i < tasksOrdered.size) {
+          tasksOrdered(i) match {
+            case REMEMBER => {
+              rememberTask(stackCopy(i).asInstanceOf[EntityType], stackCopy, i)
+              i += 1
+            }
+            case MOAN => {
+              moanTask(stackCopy(i).asInstanceOf[Object], stackCopy, i)
+              i += 1
+            }
+            case SAY => {
+              sayTask(stackCopy(i).asInstanceOf[Object], stackCopy, i)
+              i += 1
+            }
+            case ANIMATE => {
+              animateTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case DISTURB => {
+              disturbTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case BANISH => {
+              banishTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case REND => {
+              rendTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case SHAMBLE => {
+              shambleTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case AROUND => {
+              aroundTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              i += 1
+            }
+            case UNTIL(a : Int) => {
+              //untilTask(stackCopy(i).asInstanceOf[EntityType], stackOrdered)
+              i = a
+            }
           }
-          
+
         }
+        j += 1
       }
 
     }
 
   }
 
-  def rememberTask(entity: EntityType, stack: ListBuffer[Object]) {
+  def rememberTask(entity: EntityType, stack: ListBuffer[Object], index: Int) {
 
     var sum = 0
-      for (a <- statementStack) {
-        if (a.isInstanceOf[EntityType]) {
-          sum += a.asInstanceOf[EntityType].memInt
-        } else if(a.isInstanceOf[Int]) {
-          sum += a.asInstanceOf[Int]
+    var i = 0
+    while (i < stack.size) {
+      if (i != index) {
+
+        if (stack(i).isInstanceOf[EntityType]) {
+          sum += stack(i).asInstanceOf[EntityType].memInt
+        } else if (stack(i).isInstanceOf[Int]) {
+          sum += stack(i).asInstanceOf[Int]
         }
+
       }
+      i += 1
+    }
+
+    entity.memInt = sum
+
+  }
+  def moanTask(entity: Object, stack: ListBuffer[Object], index: Int) {
+
+    if (entity.isInstanceOf[Int]) { return }
+    else if (entity.isInstanceOf[EntityType]) { stack(index) = entity.asInstanceOf[EntityType].memInt }
+    else { throw new Exception("Moan received non-entity/int arg") }
+
+  }
+  def animateTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
+
+  }
+  def banishTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
+
+  }
+  def sayTask(line: Object, stack: ListBuffer[Object], index: Int) {
+
+    if (line.isInstanceOf[String]) {
+      if (!entities.contains(line.asInstanceOf[String])) {
+        println(line)
+      } else {
+        println(entities(line.asInstanceOf[String]).memInt)
+      }
+    } else {
+      throw new Exception("Invalid arg sent to sayTask")
+    }
+
+  }
+  def disturbTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
+
+  }
+  def rendTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
+
+  }
+  def shambleTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+ 
+
+  }
+  def untilTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
+
+  }
+  def aroundTask(entity: EntityType, stack: ListBuffer[Object]) {
+
+    var sum = 0
+    for (a <- statementStack) {
+      if (a.isInstanceOf[EntityType]) {
+        sum += a.asInstanceOf[EntityType].memInt
+      } else if (a.isInstanceOf[Int]) {
+        sum += a.asInstanceOf[Int]
+      }
+    }
 
   }
 
@@ -137,27 +277,25 @@ object ZombieDSL extends App {
       currentTaskObject = noTask
       //add to running entities
       callStack.+=(currentEntity)
+      new EntityThread(currentEntity).run()
     }
 
   }
 
   def shamble {
-
-    def apply {
-      if (!currentSummon) {
-        throw new RuntimeException("");
-      }
-      if (!currentTaskObject.equals(noTask)) {
-        currentEntity.prog.+=(currentTaskElement)
-      }
-      shambleCount += 1
-      //put empty stack to keep even
-      statementStack = new ListBuffer[Object]
-
-      taskStack = new ListBuffer[TaskType]
-      taskStack.+=(SHAMBLE)
-      currentTaskElement = new TaskElement(taskStack, statementStack)
+    if (!currentSummon) {
+      throw new RuntimeException("");
     }
+    if (!currentTaskObject.equals(noTask)) {
+      currentEntity.prog.+=(currentTaskElement)
+    }
+    shambleCount += 1
+    //put empty stack to keep even
+    shambleStack.push(currentEntity.prog.size)
+
+    taskStack = new ListBuffer[TaskType]
+    taskStack.+=(SHAMBLE)
+    currentTaskElement = new TaskElement(taskStack, new ListBuffer[Object])
 
   }
 
@@ -174,7 +312,8 @@ object ZombieDSL extends App {
       statementStack = new ListBuffer[Object]
 
       taskStack = new ListBuffer[TaskType]
-      taskStack.+=(UNTIL)
+      var index = 0
+      taskStack.+=(UNTIL(index))
       new IsGetter(statementStack)
     }
 
@@ -221,10 +360,6 @@ object ZombieDSL extends App {
   object remember {
 
     def start(entityName: String) = {
-      //add previous task statement to the entity's program list
-      if (!currentTaskObject.equals(noTask)) {
-        currentEntity.prog.+=(currentTaskElement)
-      }
 
       currentTaskObject = this
       //is remember the only thing that uses the task stack??
@@ -232,15 +367,13 @@ object ZombieDSL extends App {
       statementStack.+=(entities(entityName))
       taskStack = new ListBuffer[TaskType]
       taskStack.+=(REMEMBER)
-      currentTaskElement = new TaskElement(taskStack, statementStack)
+      
+      currentEntity.prog.+=(new TaskElement(taskStack, statementStack))
       new TaskGetter(taskStack, statementStack)
       //entities(entityName).memInt = statementStack.sum
     }
 
     def start = {
-      if (!currentTaskObject.equals(noTask)) {
-        currentEntity.prog.+=(currentTaskElement)
-      }
 
       currentTaskObject = this
 
@@ -248,7 +381,8 @@ object ZombieDSL extends App {
       statementStack.+=(currentEntity)
       taskStack = new ListBuffer[TaskType]
       taskStack.+=(REMEMBER)
-      currentTaskElement = new TaskElement(taskStack, statementStack)
+
+      currentEntity.prog.+=(new TaskElement(taskStack, statementStack))
       new TaskGetter(taskStack, statementStack)
 
     }
@@ -261,12 +395,12 @@ object ZombieDSL extends App {
       currentTaskObject = this
 
       statementStack = new ListBuffer[Object]
-      statementStack.+=(currentEntity)
-      statementStack.+=:(num)
+      statementStack.append(currentEntity)
+      statementStack.append(num)
       taskStack = new ListBuffer[TaskType]
-      taskStack.+=(REMEMBER)
-      taskStack.+=:(MOAN)
-      currentTaskElement = new TaskElement(taskStack, statementStack)
+      taskStack.append(REMEMBER)
+      taskStack.append(MOAN)
+      currentEntity.prog.+=(new TaskElement(taskStack, statementStack))
       new TaskGetter(taskStack, statementStack)
       //entities(currentEntity.name).memInt = statementStack.sum
 
@@ -356,7 +490,7 @@ object ZombieDSL extends App {
       currentTaskObject = this
 
       statementStack = new ListBuffer[Object]
-      statementStack.+=(currentEntity.name)
+      statementStack.+=(something)
       taskStack = new ListBuffer[TaskType]
       taskStack.+=(SAY)
       currentTaskElement = new TaskElement(taskStack, statementStack)
@@ -364,22 +498,12 @@ object ZombieDSL extends App {
     }
   }
 
-  "tom" is Zombie
 
-  summon
-  task("SayHello")
-  moan start "tom" moan 5 moan "tom"
-  shamble
-  remember(12)
-  say("sorry\n")
-  until remembering "tom" is 12
-  say("tom")
-  say("\n")
-  remember start "tom" moan 5
-  remember start "tom" moan 5 moan "tom" moan 10 say "yd"
-  say("Hello World\n")
-  say("tom")
-  animate
-  animate
+"HelloWorld" is Zombie
+summon
+task ("SayHello")
+		say ("Hello World!")
+	animate
+animate
 
 }

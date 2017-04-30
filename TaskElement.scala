@@ -21,7 +21,7 @@ case object BANISH extends TaskType
 case object DISTURB extends TaskType
 case object FORGET extends TaskType
 case object SHAMBLE extends TaskType
-case object UNTIL extends TaskType
+case class UNTIL(a : Int) extends TaskType
 case object AROUND extends TaskType
 case object STUMBLE extends TaskType
 
