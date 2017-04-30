@@ -25,4 +25,5 @@ case class UNTIL(a : Int) extends TaskType
 case object AROUND extends TaskType
 case object STUMBLE extends TaskType
 
+
 trait taskStatement

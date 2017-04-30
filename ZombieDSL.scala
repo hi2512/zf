@@ -6,8 +6,10 @@ import scala.collection.mutable.Stack
 import scala.collection.mutable.MutableList
 import scala.collection.mutable.ListBuffer
 
+
 import scala.language.implicitConversions
 import scala.language.dynamics
+import scala.util.Random
 
 object ZombieDSL extends App {
 
@@ -30,6 +32,7 @@ object ZombieDSL extends App {
 
   var currentEntity: EntityType = Zombie
 
+  var threadStack = new MutableList[EntityThread]()
   //for loop
   var shambleCount: Int = 0
 
@@ -41,6 +44,13 @@ object ZombieDSL extends App {
   class EntityThread(entity: EntityType) extends Runnable {
 
     def run {
+      entity match {
+        case Ghost => {
+          val r = Random
+          var a = r.nextInt(5000)
+          Thread.sleep(a.toLong,0)
+        }
+      }
       var j = 0
 
       while (j < entity.prog.size) {
@@ -76,7 +86,7 @@ object ZombieDSL extends App {
               i += 1
             }
             case REND => {
-              rendTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              rendTask(stackCopy)
               i += 1
             }
             case SHAMBLE => {
@@ -88,9 +98,21 @@ object ZombieDSL extends App {
               i += 1
             }
             case UNTIL(a : Int) => {
-              //untilTask(stackCopy(i).asInstanceOf[EntityType], stackOrdered)
-              i = a
+              if(untilTask(stackCopy(i).asInstanceOf[EntityType], stackOrdered))
+                i = a+1
+              else
+                i += 1
             }
+            case TURN => {
+              turnTask(stackCopy)
+              i += 1
+            }
+            
+            case TURN => {
+              rendTask(stackCopy)
+              i += 1
+            }
+            
           }
 
         }
@@ -177,33 +199,47 @@ object ZombieDSL extends App {
     }
 
   }
-  def rendTask(entity: EntityType, stack: ListBuffer[Object]) {
+  def rendTask(stack: ListBuffer[Object]) {
 
-    var sum = 0
-    for (a <- statementStack) {
-      if (a.isInstanceOf[EntityType]) {
-        sum += a.asInstanceOf[EntityType].memInt
-      } else if (a.isInstanceOf[Int]) {
-        sum += a.asInstanceOf[Int]
-      }
+    var a : Int = 0
+    var b : Int = 0
+    if(stack(0).isInstanceOf[Int]) {
+      a = stack(0).asInstanceOf[Int]
+    } else if(stack(0).isInstanceOf[EntityType]){
+      a = stack(0).asInstanceOf[EntityType].memInt
+    } else {
+      throw new Exception("Invalid arg sent to rendTask")
     }
 
+    if(stack(1).isInstanceOf[Int]) {
+      b = stack(1).asInstanceOf[Int]
+    } else if(stack(1).isInstanceOf[EntityType]){
+      b = stack(1).asInstanceOf[EntityType].memInt
+    } else {
+      throw new Exception("Invalid arg sent to rendTask")
+    }
+    
+    var c = b/a
+    
+    stack(0) = c.asInstanceOf[Object]
+    stack(1) = 0.asInstanceOf[Object]
   }
   def shambleTask(entity: EntityType, stack: ListBuffer[Object]) {
 
  
 
   }
-  def untilTask(entity: EntityType, stack: ListBuffer[Object]) {
-
-    var sum = 0
-    for (a <- statementStack) {
-      if (a.isInstanceOf[EntityType]) {
-        sum += a.asInstanceOf[EntityType].memInt
-      } else if (a.isInstanceOf[Int]) {
-        sum += a.asInstanceOf[Int]
-      }
-    }
+  
+  def untilTask(entity: EntityType, stack: ListBuffer[Object]): Boolean = {
+    var a = true
+    
+    if(stack(0).isInstanceOf[EntityType])
+      a = stack(0).asInstanceOf[EntityType].memInt == entity.memInt
+    else if (stack(0).isInstanceOf[Int])
+      a = stack(0).asInstanceOf[Int] == entity.memInt
+    else
+      throw new Exception("Bad arg passed to untilTask.")
+    a
 
   }
   def aroundTask(entity: EntityType, stack: ListBuffer[Object]) {
@@ -218,6 +254,18 @@ object ZombieDSL extends App {
     }
 
   }
+
+  def turnTask(stack: ListBuffer[Object]) {
+    if (stack(0).isInstanceOf[EntityType])
+      stack(0).asInstanceOf[EntityType].memInt *= -1
+    else if (stack(0).isInstanceOf[Int])
+      stack(0) = (stack(0).asInstanceOf[Int] * (-1)).asInstanceOf[Object]
+    else
+      throw new Exception("Bad arg passed to turnTask.")
+  
+
+  }
+
 
   implicit class EntityName(s: String) {
 
@@ -279,6 +327,23 @@ object ZombieDSL extends App {
       callStack.+=(currentEntity)
       new EntityThread(currentEntity).run()
     }
+    
+   
+
+  }
+
+  def disturb {
+    if (!currentSummon) {
+      throw new RuntimeException("");
+    }
+    currentEntity match {
+      case Zombie => currentSummon = false
+      case Ghost => {
+        currentSummon = false
+        new EntityThread(currentEntity).run()
+      }
+      case _ => throw new RuntimeException("");
+    }
 
   }
 
@@ -312,11 +377,12 @@ object ZombieDSL extends App {
       statementStack = new ListBuffer[Object]
 
       taskStack = new ListBuffer[TaskType]
-      var index = 0
+      var index = shambleStack.pop
       taskStack.+=(UNTIL(index))
       new IsGetter(statementStack)
     }
-
+    
+    
   }
 
   class IsGetter(stack: ListBuffer[Object]) {
@@ -325,7 +391,7 @@ object ZombieDSL extends App {
     }
 
     def is(entityName: String) = {
-      stack.+=(entities(entityName).memInt)
+      stack.+=(entities(entityName))
     }
   }
 
@@ -351,9 +417,6 @@ object ZombieDSL extends App {
 
   }
 
-  def disturb {
-
-  }
 
   object noTask
 
@@ -479,31 +542,42 @@ object ZombieDSL extends App {
       s.+=(something)
       new TaskGetter(ts, s)
     }
+    
+    def turn() =
+    {
+      ts.+=(TURN)
+      s.+=(null)
+      new TaskGetter(ts, s)
+    }
+    
+    def rend() =
+    {
+      ts.+=(REND)
+      s.+=(null)
+      new TaskGetter(ts, s)
+    }
   }
 
   object say {
     def apply(something: String) = {
-      if (!currentTaskObject.equals(noTask)) {
-        currentEntity.prog.+=(currentTaskElement)
-      }
-
+     
       currentTaskObject = this
 
       statementStack = new ListBuffer[Object]
       statementStack.+=(something)
       taskStack = new ListBuffer[TaskType]
       taskStack.+=(SAY)
-      currentTaskElement = new TaskElement(taskStack, statementStack)
+      currentEntity.prog.append( new TaskElement(taskStack, statementStack))
       new TaskGetter(taskStack, statementStack)
     }
   }
 
 
-"HelloWorld" is Zombie
+"tom" is Ghost
 summon
 task ("SayHello")
-		say ("Hello World!")
+    say ("tom")
 	animate
-animate
+disturb
 
 }
