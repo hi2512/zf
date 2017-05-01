@@ -65,7 +65,7 @@ class ZombieDSL{
         entity match {
         case GhostEntity() => {
           val r = Random
-          var a = r.nextInt(5000)
+          var a = r.nextInt(2000)
           Thread.sleep(a.toLong, 0)
         }
         
@@ -323,11 +323,7 @@ class ZombieDSL{
       //tasks(currentTaskName) = taskElement
     } else {
       //finish summon
-      currentEntity match {
-        case ZombieEntity()  => currentSummon = false
-        case VampireEntity() => currentSummon = false;
-        case default => return;
-      }
+     currentSummon = false
         currentEntity.prog.append(currentTaskElement)
       currentTaskObject = noTask
       //add to running entities
