@@ -10,10 +10,10 @@ import scala.language.implicitConversions
 import scala.language.dynamics
 import scala.util.Random
 
-object ZombieDSL extends App {
+class ZombieDSL{
 
-  var entities = new mutable.HashMap[String, EntityType]
-  var callStack = new mutable.ListBuffer[EntityType]
+  var entities = new mutable.HashMap[String, Entity]
+  var callStack = new mutable.ListBuffer[Entity]
   var shambleStack = new Stack[Int]
   var currentSummon = false
   var currentTask = false
@@ -31,7 +31,7 @@ object ZombieDSL extends App {
   var taskStack: ListBuffer[TaskType] = new ListBuffer[TaskType]
   var statementStack: ListBuffer[Object] = new ListBuffer[Object]
 
-  var currentEntity: EntityType = Zombie
+  var currentEntity: Entity = new ZombieEntity()
 
   var threadStack = new MutableList[EntityThread]()
   //for loop
@@ -42,38 +42,38 @@ object ZombieDSL extends App {
   // var tasks = new mutable.HashMap[String, MutableList[MutableList[taskStatement]]]
   //var rememberEntity = ""
 
-  class EntityThread(entity: EntityType) extends Runnable {
+  class EntityThread(entity: Entity) extends Runnable {
 
     def run {
       entity match {
-        case Ghost => {
+        case GhostEntity() => {
           val r = Random
           var a = r.nextInt(5000)
           Thread.sleep(a.toLong, 0)
         }
         
-        case Vampire =>
+        case VampireEntity() =>
           {
             entity.prog = Random.shuffle(entity.prog)
           }
-        case Zombie => {}
+        case ZombieEntity() => {}
       }
       
       var j = 0
       
       while (j < entity.prog.size ) {
         entity match {
-        case Ghost => {
+        case GhostEntity() => {
           val r = Random
           var a = r.nextInt(5000)
           Thread.sleep(a.toLong, 0)
         }
         
-        case Vampire =>
+        case VampireEntity() =>
           {
             
           }
-        case Zombie => {}
+        case ZombieEntity() => {}
       }
         var t = entity.prog(j)
         var tasksOrdered = t.tasks.reverse
@@ -83,7 +83,7 @@ object ZombieDSL extends App {
         while (i < tasksOrdered.size) {
           tasksOrdered(i) match {
             case REMEMBER => {
-              rememberTask(stackCopy(i).asInstanceOf[EntityType], stackCopy, i)
+              rememberTask(stackCopy(i).asInstanceOf[Entity], stackCopy, i)
               i += 1
             }
             case MOAN => {
@@ -95,11 +95,11 @@ object ZombieDSL extends App {
               i += 1
             }
             case ANIMATE => {
-              animateTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              animateTask(stackCopy(i).asInstanceOf[Entity], stackCopy)
               i += 1
             }
             case BANISH => {
-              banishTask(stackCopy(i).asInstanceOf[EntityType], stackCopy)
+              banishTask(stackCopy(i).asInstanceOf[Entity], stackCopy)
               i += 1
             }
             case REND => {
@@ -126,7 +126,7 @@ object ZombieDSL extends App {
             }
             
             case FORGET => {
-              forgetTask(stackCopy(i).asInstanceOf[EntityType])
+              forgetTask(stackCopy(i).asInstanceOf[Entity])
               i += 1
             }
             
@@ -146,14 +146,14 @@ object ZombieDSL extends App {
 
   }
 
-  def rememberTask(entity: EntityType, stack: ListBuffer[Object], index: Int) {
+  def rememberTask(entity: Entity, stack: ListBuffer[Object], index: Int) {
 
     var sum = 0
     var i = 0
     while (i < stack.size) {
       if (i != index) {
 
-        if (stack(i).isInstanceOf[EntityType]) {
+        if (stack(i).isInstanceOf[Entity]) {
           throw new Exception("Invalid arg sent to rememberTask")
         } else if (stack(i).isInstanceOf[Int]) {
           sum += stack(i).asInstanceOf[Int]
@@ -169,19 +169,19 @@ object ZombieDSL extends App {
   def moanTask(entity: Object, stack: ListBuffer[Object], index: Int) {
 
     if (entity.isInstanceOf[Int]) { return }
-    else if (entity.isInstanceOf[EntityType]) { stack(index) = entity.asInstanceOf[EntityType].memInt }
+    else if (entity.isInstanceOf[Entity]) { stack(index) = entity.asInstanceOf[Entity].memInt }
     else { throw new Exception("Moan received non-entity/int arg") }
 
   }
-  def animateTask(entity: EntityType, stack: ListBuffer[Object]) {
+  def animateTask(entity: Entity, stack: ListBuffer[Object]) {
 
   }
-  def banishTask(entity: EntityType, stack: ListBuffer[Object]) {
+  def banishTask(entity: Entity, stack: ListBuffer[Object]) {
 
     var sum = 0
     for (a <- statementStack) {
-      if (a.isInstanceOf[EntityType]) {
-        sum += a.asInstanceOf[EntityType].memInt
+      if (a.isInstanceOf[Entity]) {
+        sum += a.asInstanceOf[Entity].memInt
       } else if (a.isInstanceOf[Int]) {
         sum += a.asInstanceOf[Int]
       }
@@ -208,16 +208,16 @@ object ZombieDSL extends App {
     var b: Int = 0
     if (stack(0).isInstanceOf[Int]) {
       a = stack(0).asInstanceOf[Int]
-    } else if (stack(0).isInstanceOf[EntityType]) {
-      a = stack(0).asInstanceOf[EntityType].memInt
+    } else if (stack(0).isInstanceOf[Entity]) {
+      a = stack(0).asInstanceOf[Entity].memInt
     } else {
       throw new Exception("Invalid arg sent to rendTask")
     }
 
     if (stack(1).isInstanceOf[Int]) {
       b = stack(1).asInstanceOf[Int]
-    } else if (stack(1).isInstanceOf[EntityType]) {
-      b = stack(1).asInstanceOf[EntityType].memInt
+    } else if (stack(1).isInstanceOf[Entity]) {
+      b = stack(1).asInstanceOf[Entity].memInt
     } else {
       throw new Exception("Invalid arg sent to rendTask")
     }
@@ -235,8 +235,8 @@ object ZombieDSL extends App {
     var a = true
     var entity = entities(stack(1).asInstanceOf[String])
     
-    if (stack(0).isInstanceOf[EntityType])
-      a = stack(0).asInstanceOf[EntityType].memInt == entity.memInt
+    if (stack(0).isInstanceOf[Entity])
+      a = stack(0).asInstanceOf[Entity].memInt == entity.memInt
     else if (stack(0).isInstanceOf[Int])
       a = stack(0).asInstanceOf[Int] == entity.memInt
     else
@@ -244,13 +244,13 @@ object ZombieDSL extends App {
     a
 
   }
-  def aroundTask(entity: EntityType, stack: ListBuffer[Object]) {
+  def aroundTask(entity: Entity, stack: ListBuffer[Object]) {
 
   }
 
   def turnTask(stack: ListBuffer[Object]) {
-    if (stack(0).isInstanceOf[EntityType])
-      stack(0).asInstanceOf[EntityType].memInt *= -1
+    if (stack(0).isInstanceOf[Entity])
+      stack(0).asInstanceOf[Entity].memInt *= -1
     else if (stack(0).isInstanceOf[Int])
       stack(0) = (stack(0).asInstanceOf[Int] * (-1)).asInstanceOf[Object]
     else
@@ -258,23 +258,30 @@ object ZombieDSL extends App {
 
   }
 
-  def forgetTask(entity: EntityType) {
+  def forgetTask(entity: Entity) {
     entity.memInt = 0
   }
   
     def invokeTask(stack : ListBuffer[Object]) {
-      new EntityThread(stack(0).asInstanceOf[EntityType]).run()
+      new EntityThread(stack(0).asInstanceOf[Entity]).run()
     
   }
 
   implicit class EntityName(s: String) {
 
-    def is(e: EntityType) {
+    def is(e: EntityObject) {
       if (currentSummon) {
         throw new RuntimeException("");
       }
-      entities.put(s, e)
-      currentEntity = e
+      
+      var entity : Entity = new ZombieEntity()
+      e match {
+        case Zombie =>    entity = new ZombieEntity()
+        case Vampire =>   entity = new VampireEntity()
+        case Ghost =>     entity = new GhostEntity()
+      }
+      entities.put(s, entity)
+      currentEntity = entity
       currentEntity.name = s
       currentSummon = true
     }
@@ -284,7 +291,6 @@ object ZombieDSL extends App {
     if (!currentSummon) {
       throw new RuntimeException("");
     }
-    currentTask = true
     currentProg = new ListBuffer[TaskElement]
   }
 
@@ -318,8 +324,8 @@ object ZombieDSL extends App {
     } else {
       //finish summon
       currentEntity match {
-        case Zombie  => currentSummon = false
-        case Vampire => currentSummon = false;
+        case ZombieEntity()  => currentSummon = false
+        case VampireEntity() => currentSummon = false;
         case default => return;
       }
         currentEntity.prog.append(currentTaskElement)
@@ -348,7 +354,7 @@ object ZombieDSL extends App {
     } else {
       //finish summon
       currentEntity match {
-        case Zombie  => currentSummon = false
+        case ZombieEntity()  => currentSummon = false
         case default => return ;
       }
 
@@ -358,6 +364,7 @@ object ZombieDSL extends App {
       //add to running entities
       callStack.append(currentEntity)
       new EntityThread(currentEntity).run()
+      currentSummon = false
     }
   }
 
@@ -366,7 +373,7 @@ object ZombieDSL extends App {
       throw new RuntimeException("");
     }
     currentEntity match {
-      case Ghost => {
+      case GhostEntity() => {
         currentSummon = false
         new EntityThread(currentEntity).run()
       }
@@ -391,6 +398,8 @@ object ZombieDSL extends App {
     currentEntity.prog.append(currentTaskElement)
 
   }
+  
+  
 
   object until {
 
@@ -454,6 +463,7 @@ object ZombieDSL extends App {
       currentTaskObject = this
       //is remember the only thing that uses the task stack??
       statementStack = new ListBuffer[Object]
+      var a = entities
       statementStack.append(entities(entityName))
       taskStack = new ListBuffer[TaskType]
       taskStack.append(REMEMBER)
@@ -638,13 +648,5 @@ object ZombieDSL extends App {
     }
   }
 
-  "tom" is Ghost
-  summon
-  task("SayHello")
-  say("1")
-  say("2")
-  say("3")
-  animate
-  animate
 
 }
