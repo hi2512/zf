@@ -263,7 +263,7 @@ class ZombieDSL{
   }
   
     def invokeTask(stack : ListBuffer[Object]) {
-      new EntityThread(stack(0).asInstanceOf[Entity]).run()
+      new EntityThread(stack(0).asInstanceOf[Entity])
     
   }
 
@@ -328,7 +328,7 @@ class ZombieDSL{
       currentTaskObject = noTask
       //add to running entities
       callStack.append(currentEntity)
-      new EntityThread(currentEntity).run()
+      new Thread(new EntityThread(currentEntity)).start()
     }
 
   }
@@ -359,7 +359,7 @@ class ZombieDSL{
       currentTaskObject = noTask
       //add to running entities
       callStack.append(currentEntity)
-      new EntityThread(currentEntity).run()
+      new Thread(new EntityThread(currentEntity)).start()
       currentSummon = false
     }
   }

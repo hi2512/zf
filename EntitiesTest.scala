@@ -5,6 +5,29 @@ object EntitiesTest extends ZombieDSL {
   {
    
     
+    "ghost1" is Ghost
+    summon
+      say("Summoned Ghost. Saying 1-15.")
+      remember(15)
+      say ("G1")
+      say ("G2")
+      say ("G3")
+      say ("G4")
+      say ("G5")
+      say ("G6")
+      say ("G7")
+      say ("G8")
+      say ("G9")
+      say ("G10")
+      say ("G11")
+      say ("G12")
+      say ("G13")
+      say ("G14")
+      say ("G15")
+    animate
+    
+    Thread.sleep(8000L)
+
     "vampire1" is Vampire
     summon
       say("Summoned Vampire with shamble")
@@ -14,8 +37,8 @@ object EntitiesTest extends ZombieDSL {
         remember start "vampire1" moan "vampire1" moan -1
       until remembering "vampire1" is 0
     animate
-    
     "vampire2" is Vampire
+    
     summon
       say("Summoned Vampire. Saying 1-15.")
       remember(15)
@@ -47,25 +70,5 @@ object EntitiesTest extends ZombieDSL {
       until remembering "zombie1" is 0
     animate
     
-     "ghost1" is Ghost
-    summon
-      say("Summoned Ghost. Saying 1-15.")
-      remember(15)
-      say ("G1")
-      say ("G2")
-      say ("G3")
-      say ("G4")
-      say ("G5")
-      say ("G6")
-      say ("G7")
-      say ("G8")
-      say ("G9")
-      say ("G10")
-      say ("G11")
-      say ("G12")
-      say ("G13")
-      say ("G14")
-      say ("G15")
-    animate
   }
 }
